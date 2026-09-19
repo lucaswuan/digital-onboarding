@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Your Name
+ * Copyright (c) 2024 Lucas Wu
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -17,8 +17,7 @@ module tt_um_uwasic_onboarding_lucas_wu (
 );
 
   // All output pins must be assigned. If not used, assign to 0.
-  //assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
-  //assign uio_out = 0;
+  
   assign uio_oe = 8'hFF;
 
   wire [7:0] en_reg_out_7_0;
@@ -36,6 +35,19 @@ module tt_um_uwasic_onboarding_lucas_wu (
     .en_reg_pwm_15_8(en_reg_pwm_15_8),
     .pwm_duty_cycle(pwm_duty_cycle),
     .out({uio_out, uo_out})
+  );
+
+  spi_peripheral spi_peripheral_inst (
+    .clk(clk),
+    .rst_n(rst_n),
+    .COPI(ui_in[1]),
+    .nCS(ui_in[2]),
+    .SCLK(ui_in[0]),
+    .en_reg_out_7_0(en_reg_out_7_0),
+    .en_reg_out_15_8(en_reg_out_15_8),
+    .en_reg_pwm_7_0(en_reg_pwm_7_0),
+    .en_reg_pwm_15_8(en_reg_pwm_15_8),
+    .pwm_duty_cycle(pwm_duty_cycle)
   );
 
 
