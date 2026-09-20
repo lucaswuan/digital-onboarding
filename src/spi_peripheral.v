@@ -16,7 +16,7 @@ module spi_peripheral (
 
 );
 
-    localparam [6:0] MAX_ADDRESS = 7'h04;
+    localparam integer MAX_ADDRESS = 4;
     reg [7:0] memory_map [0:MAX_ADDRESS];
 
     reg sync1_SCLK, sync2_SCLK, detect_edge_SCLK;
@@ -49,7 +49,7 @@ module spi_peripheral (
             bit_counter <= 5'd0;
             copi_input_storage <= 16'd0;
 
-            for (i = 0; i < MAX_ADDRESS + 1; i = i+1) begin 
+            for (i = 0; i <= MAX_ADDRESS; i = i+1) begin 
                 memory_map[i] <= 8'd0;
             end
 
@@ -71,8 +71,8 @@ module spi_peripheral (
                 bit_counter <= bit_counter + 1;
             end else if (is_posedge_nCS) begin 
  
-                if (bit_counter == 16 && copi_input_storage[15] && copi_input_storage[14:8] <= MAX_ADDRESS) begin 
-                    memory_map[copi_input_storage[14:8]] <= copi_input_storage[7:0];
+                if (bit_counter == 16 && copi_input_storage[15] && copi_input_storage[14:11] == 4'h0 && copi_input_storage[10:8] <= 3'b100) begin 
+                    memory_map[copi_input_storage[10:8]] <= copi_input_storage[7:0];
                 end
 
                 bit_counter <= 0;

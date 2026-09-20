@@ -9,7 +9,7 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-The SPI peripheral receives a 16 bit write (1 bit R/W (read only), 7 bit address, 8 bit data) and stores it on one of 5 registers. The pwm peripheral then reads those 5 registers to drive its 16 outputs. Its outputs can have the following states:
+The SPI peripheral receives a 16 bit write (1 bit R/W (write only), 7 bit address, 8 bit data) and stores it on one of 5 registers. The pwm peripheral then reads those 5 registers to drive its 16 outputs. Its outputs can have the following states:
 - on
 - off
 - pwm_mode: around a 3kHz signal at the chosen duty cycle
@@ -30,6 +30,8 @@ Use SPI in mode 0, write only. 16 bits per transaction, MSB first.
 - bit 2-8: memory address
 - bit 9-16: data
 
+System clock is 10Mhz, SCLK is around 100kHZ
+
 Register map:
 
 | Addr   | Register          | Description                              | Reset Value |
@@ -48,4 +50,4 @@ To make OUT0 pulse at 50%:
 
 ## External hardware
 
-- An SPI controller to write
+- An SPI controller to write the registers
