@@ -151,11 +151,104 @@ async def test_spi(dut):
 
 @cocotb.test()
 async def test_pwm_freq(dut):
-    # Write your test here
+    dut._log.info("Start PWM test")
+    clock = Clock(dut.clk, 100, units="ns")
+    cocotb.start_soon(clock.start())
+
+    # Reset
+    dut._log.info("Reset")
+    dut.ena.value = 1
+    ncs = 1
+    bit = 0
+    sclk = 0
+    dut.ui_in.value = ui_in_logicarray(ncs, bit, sclk)
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
+
+    dut._log.info("Test project behavior")
+
+    dut._log.info("Setting PWM mode on for output pin 0, set duty to 50 percent, enable output for pin 0")
+    await send_spi_transaction(dut, 1, 0x02, 0x01)
+    await send_spi_transaction(dut, 1, 0x04, 0x80)
+    await send_spi_transaction(dut, 1, 0x00, 0x01)
+
+    tempnum1 = -1
+    tempnum2 = -1
+    is_rised = False
+    inital_time = 0.0
+    freq = 0.0
+    measurement_made = False
+
+    for _ in range(10000):
+        await ClockCycles(dut.clk, 1)
+        tempnum2 = tempnum1
+        tempnum1 = int(dut.uo_out.value) & 0x01
+
+        if tempnum1 == 1 and tempnum2 == 0 and not is_rised:
+            is_rised = True
+            inital_time = cocotb.utils.get_sim_time(units='sec')
+        elif tempnum1 == 1 and tempnum2 == 0:
+            measurement_made = True
+            freq = 1/(cocotb.utils.get_sim_time(units='sec') - inital_time)
+            assert freq > 2970 and freq <3030, f"Frequency test: out of bound, freq: {freq}"
+            break
+
+    assert measurement_made, f"Frequency test: no measurement made"
+
     dut._log.info("PWM Frequency test completed successfully")
 
 
 @cocotb.test()
 async def test_pwm_duty(dut):
     # Write your test here
+    dut._log.info("Start PWM test")
+    clock = Clock(dut.clk, 100, units="ns")
+    cocotb.start_soon(clock.start())
+
+    # Reset
+    dut._log.info("Reset")
+    dut.ena.value = 1
+    ncs = 1
+    bit = 0
+    sclk = 0
+    dut.ui_in.value = ui_in_logicarray(ncs, bit, sclk)
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
+
+    dut._log.info("Test project behavior")
+
+    dut._log.info("Setting PWM mode on for output pin 0, and enable output for pin 0")
+    await send_spi_transaction(dut, 1, 0x02, 0x01)
+    await send_spi_transaction(dut, 1, 0x00, 0x01)
+
+
+    dut._log.info("Test 0 percent duty")
+    await send_spi_transaction(dut, 1, 0x04, 0x00)
+    for _ in range (3400):
+        await ClockCycles(dut.clk, 1)
+        pin0 = int(dut.uo_out.value) & 0x01
+        assert pin0 == 0, f"0 duty: pin 0 went high"
+
+    dut._log.info("Test 100 percent duty")
+    await send_spi_transaction(dut, 1, 0x04, 0xFF)
+    for _ in range (3400):
+        await ClockCycles(dut.clk, 1)
+        pin0 = int(dut.uo_out.value) & 0x01
+        assert pin0 == 1, f"100 duty: Pin 0 went low"
+
+    dut._log.info("Test 50 percent duty")
+    await send_spi_transaction(dut, 1, 0x04, 0x80)
+    on = 0
+    for _ in range (3328):
+        await ClockCycles(dut.clk, 1)
+        pin0 = int(dut.uo_out.value) & 0x01
+        on += pin0
+    assert on == 3328/2, f"50 percent duty: pin 0 high for {on} cycles, or {on/3328 *100}%"
+
+
+
     dut._log.info("PWM Duty Cycle test completed successfully")
